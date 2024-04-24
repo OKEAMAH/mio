@@ -622,6 +622,7 @@ fn write_error() {
     let buf = [0; 1024];
     loop {
         match s.write(&buf) {
+            Ok(0) => panic!("unexpected end"),
             Ok(_) => {}
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => wait_writable(),
             Err(e) => {
@@ -700,8 +701,8 @@ fn write_shutdown() {
     // Now, shutdown the write half of the socket.
     socket.shutdown(Shutdown::Write).unwrap();
 
-    // POLLRDHUP isn't supported on Solaris
-    if cfg!(target_os = "solaris") {
+    // POLLRDHUP isn't supported on Solaris,
+    if cfg!(any(target_os = "solaris", target_os = "nto")) {
         wait!(poll, is_readable, false);
     } else {
         wait!(poll, is_readable, true);
