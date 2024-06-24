@@ -1,12 +1,12 @@
 use std::fmt;
 use std::io::{self, IoSlice, IoSliceMut, Read, Write};
 use std::net::{self, Shutdown, SocketAddr};
+#[cfg(any(unix, target_os = "wasi"))]
+use std::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, RawFd};
+// TODO: once <https://github.com/rust-lang/rust/issues/126198> is fixed this
+// can use `std::os::fd` and be merged with the above.
 #[cfg(target_os = "hermit")]
-use std::os::hermit::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
-#[cfg(unix)]
-use std::os::unix::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
-#[cfg(target_os = "wasi")]
-use std::os::wasi::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
+use std::os::hermit::io::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, RawFd};
 #[cfg(windows)]
 use std::os::windows::io::{AsRawSocket, FromRawSocket, IntoRawSocket, RawSocket};
 
@@ -232,8 +232,8 @@ impl TcpStream {
     /// #
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// use std::io;
-    /// #[cfg(unix)]
-    /// use std::os::unix::io::AsRawFd;
+    /// #[cfg(any(unix, target_os = "wasi"))]
+    /// use std::os::fd::AsRawFd;
     /// #[cfg(windows)]
     /// use std::os::windows::io::AsRawSocket;
     /// use mio::net::TcpStream;
@@ -350,21 +350,21 @@ impl fmt::Debug for TcpStream {
     }
 }
 
-#[cfg(any(unix, target_os = "hermit"))]
+#[cfg(any(unix, target_os = "hermit", target_os = "wasi"))]
 impl IntoRawFd for TcpStream {
     fn into_raw_fd(self) -> RawFd {
         self.inner.into_inner().into_raw_fd()
     }
 }
 
-#[cfg(any(unix, target_os = "hermit"))]
+#[cfg(any(unix, target_os = "hermit", target_os = "wasi"))]
 impl AsRawFd for TcpStream {
     fn as_raw_fd(&self) -> RawFd {
         self.inner.as_raw_fd()
     }
 }
 
-#[cfg(any(unix, target_os = "hermit"))]
+#[cfg(any(unix, target_os = "hermit", target_os = "wasi"))]
 impl FromRawFd for TcpStream {
     /// Converts a `RawFd` to a `TcpStream`.
     ///
@@ -374,6 +374,13 @@ impl FromRawFd for TcpStream {
     /// non-blocking mode.
     unsafe fn from_raw_fd(fd: RawFd) -> TcpStream {
         TcpStream::from_std(FromRawFd::from_raw_fd(fd))
+    }
+}
+
+#[cfg(any(unix, target_os = "hermit", target_os = "wasi"))]
+impl AsFd for TcpStream {
+    fn as_fd(&self) -> BorrowedFd<'_> {
+        self.inner.as_fd()
     }
 }
 
@@ -401,33 +408,6 @@ impl FromRawSocket for TcpStream {
     /// non-blocking mode.
     unsafe fn from_raw_socket(socket: RawSocket) -> TcpStream {
         TcpStream::from_std(FromRawSocket::from_raw_socket(socket))
-    }
-}
-
-#[cfg(target_os = "wasi")]
-impl IntoRawFd for TcpStream {
-    fn into_raw_fd(self) -> RawFd {
-        self.inner.into_inner().into_raw_fd()
-    }
-}
-
-#[cfg(target_os = "wasi")]
-impl AsRawFd for TcpStream {
-    fn as_raw_fd(&self) -> RawFd {
-        self.inner.as_raw_fd()
-    }
-}
-
-#[cfg(target_os = "wasi")]
-impl FromRawFd for TcpStream {
-    /// Converts a `RawFd` to a `TcpStream`.
-    ///
-    /// # Notes
-    ///
-    /// The caller is responsible for ensuring that the socket is in
-    /// non-blocking mode.
-    unsafe fn from_raw_fd(fd: RawFd) -> TcpStream {
-        TcpStream::from_std(FromRawFd::from_raw_fd(fd))
     }
 }
 

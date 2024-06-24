@@ -7,7 +7,7 @@ use std::mem::size_of;
 use std::net::SocketAddr;
 use std::ops::BitOr;
 #[cfg(unix)]
-use std::os::unix::io::AsRawFd;
+use std::os::fd::AsRawFd;
 use std::path::PathBuf;
 use std::sync::Once;
 use std::time::Duration;
@@ -253,6 +253,7 @@ pub fn set_linger_zero(socket: &TcpStream) {
                 target_os = "ios",
                 target_os = "macos",
                 target_os = "tvos",
+                target_os = "visionos",
                 target_os = "watchos",
             ))]
             libc::SO_LINGER_SEC,
@@ -260,6 +261,7 @@ pub fn set_linger_zero(socket: &TcpStream) {
                 target_os = "ios",
                 target_os = "macos",
                 target_os = "tvos",
+                target_os = "visionos",
                 target_os = "watchos",
             )))]
             libc::SO_LINGER,

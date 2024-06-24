@@ -231,6 +231,7 @@ fn unix_stream_shutdown_read() {
         target_os = "netbsd",
         target_os = "openbsd",
         target_os = "tvos",
+        target_os = "visionos",
         target_os = "watchos",
     ))]
     {
@@ -280,6 +281,7 @@ fn unix_stream_shutdown_write() {
         target_os = "netbsd",
         target_os = "openbsd",
         target_os = "tvos",
+        target_os = "visionos",
         target_os = "watchos",
     ))]
     expect_events(
@@ -346,6 +348,7 @@ fn unix_stream_shutdown_both() {
         target_os = "netbsd",
         target_os = "openbsd",
         target_os = "tvos",
+        target_os = "visionos",
         target_os = "watchos",
     ))]
     {
@@ -356,7 +359,7 @@ fn unix_stream_shutdown_both() {
     let err = stream.write(DATA2).unwrap_err();
     #[cfg(unix)]
     assert_eq!(err.kind(), io::ErrorKind::BrokenPipe);
-    #[cfg(window)]
+    #[cfg(windows)]
     assert_eq!(err.kind(), io::ErrorKind::ConnectionAbroted);
 
     // Close the connection to allow the remote to shutdown

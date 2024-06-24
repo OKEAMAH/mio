@@ -152,12 +152,8 @@ This uses the Windows AFD system to access socket readiness events.
 
 ### Unsupported
 
-* Haiku, see [issue #1472]
-* Solaris, see [issue #1152]
 * Wine, see [issue #1444]
 
-[issue #1472]: https://github.com/tokio-rs/mio/issues/1472
-[issue #1152]: https://github.com/tokio-rs/mio/issues/1152
 [issue #1444]: https://github.com/tokio-rs/mio/issues/1444
 
 ## MSRV Policy
@@ -165,11 +161,11 @@ This uses the Windows AFD system to access socket readiness events.
 The MSRV (Minimum Supported Rust Version) is fixed for a given minor (1.x)
 version. However it can be increased when bumping minor versions, i.e. going
 from 1.0 to 1.1 allows us to increase the MSRV. Users unable to increase their
-Rust version can an older minor version instead. Below is a list of Mio versions
+Rust version can use an older minor version instead. Below is a list of Mio versions
 and their MSRV:
 
  * v0.8: Rust 1.46.
- * v1.0: Rust 1.74.
+ * v1.0: Rust 1.70.
 
 Note however that Mio also has dependencies, which might have different MSRV
 policies. We try to stick to the above policy when updating dependencies, but

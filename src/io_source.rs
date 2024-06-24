@@ -1,10 +1,10 @@
 use std::ops::{Deref, DerefMut};
+#[cfg(any(unix, target_os = "wasi"))]
+use std::os::fd::AsRawFd;
+// TODO: once <https://github.com/rust-lang/rust/issues/126198> is fixed this
+// can use `std::os::fd` and be merged with the above.
 #[cfg(target_os = "hermit")]
 use std::os::hermit::io::AsRawFd;
-#[cfg(unix)]
-use std::os::unix::io::AsRawFd;
-#[cfg(target_os = "wasi")]
-use std::os::wasi::io::AsRawFd;
 #[cfg(windows)]
 use std::os::windows::io::AsRawSocket;
 #[cfg(debug_assertions)]
@@ -23,7 +23,7 @@ use crate::{event, Interest, Registry, Token};
 /// Mio supports registering any FD or socket that can be registered with the
 /// underlying OS selector. `IoSource` provides the necessary bridge.
 ///
-/// [`RawFd`]: std::os::unix::io::RawFd
+/// [`RawFd`]: std::os::fd::RawFd
 /// [`RawSocket`]: std::os::windows::io::RawSocket
 ///
 /// # Notes

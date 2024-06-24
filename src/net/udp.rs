@@ -7,19 +7,19 @@
 //!
 //! [portability guidelines]: ../struct.Poll.html#portability
 
-use crate::io_source::IoSource;
-use crate::{event, sys, Interest, Registry, Token};
-
-use std::fmt;
-use std::io;
-use std::net;
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
+#[cfg(any(unix, target_os = "wasi"))]
+use std::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, RawFd};
+// TODO: once <https://github.com/rust-lang/rust/issues/126198> is fixed this
+// can use `std::os::fd` and be merged with the above.
 #[cfg(target_os = "hermit")]
-use std::os::hermit::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
-#[cfg(unix)]
-use std::os::unix::io::{AsRawFd, FromRawFd, IntoRawFd, RawFd};
+use std::os::hermit::io::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, RawFd};
 #[cfg(windows)]
 use std::os::windows::io::{AsRawSocket, FromRawSocket, IntoRawSocket, RawSocket};
+use std::{fmt, io, net};
+
+use crate::io_source::IoSource;
+use crate::{event, sys, Interest, Registry, Token};
 
 /// A User Datagram Protocol socket.
 ///
@@ -574,8 +574,8 @@ impl UdpSocket {
     /// #
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// use std::io;
-    /// #[cfg(unix)]
-    /// use std::os::unix::io::AsRawFd;
+    /// #[cfg(any(unix, target_os = "wasi"))]
+    /// use std::os::fd::AsRawFd;
     /// #[cfg(windows)]
     /// use std::os::windows::io::AsRawSocket;
     /// use mio::net::UdpSocket;
@@ -644,21 +644,21 @@ impl fmt::Debug for UdpSocket {
     }
 }
 
-#[cfg(any(unix, target_os = "hermit"))]
+#[cfg(any(unix, target_os = "hermit", target_os = "wasi"))]
 impl IntoRawFd for UdpSocket {
     fn into_raw_fd(self) -> RawFd {
         self.inner.into_inner().into_raw_fd()
     }
 }
 
-#[cfg(any(unix, target_os = "hermit"))]
+#[cfg(any(unix, target_os = "hermit", target_os = "wasi"))]
 impl AsRawFd for UdpSocket {
     fn as_raw_fd(&self) -> RawFd {
         self.inner.as_raw_fd()
     }
 }
 
-#[cfg(any(unix, target_os = "hermit"))]
+#[cfg(any(unix, target_os = "hermit", target_os = "wasi"))]
 impl FromRawFd for UdpSocket {
     /// Converts a `RawFd` to a `UdpSocket`.
     ///
@@ -668,6 +668,13 @@ impl FromRawFd for UdpSocket {
     /// non-blocking mode.
     unsafe fn from_raw_fd(fd: RawFd) -> UdpSocket {
         UdpSocket::from_std(FromRawFd::from_raw_fd(fd))
+    }
+}
+
+#[cfg(any(unix, target_os = "hermit", target_os = "wasi"))]
+impl AsFd for UdpSocket {
+    fn as_fd(&self) -> BorrowedFd<'_> {
+        self.inner.as_fd()
     }
 }
 
